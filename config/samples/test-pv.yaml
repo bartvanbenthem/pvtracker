@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: test-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: manual-nfs
+  nfs:
+    path: /export/test
+    server: 10.0.0.1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: test-pv-2
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: manual-nfs
+  nfs:
+    path: /export/test
+    server: 10.0.0.1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: test-pv-3
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: manual-nfs
+  nfs:
+    path: /export/test
+    server: 10.0.0.1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: test-pv-4
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: manual-nfs
+  nfs:
+    path: /export/test
+    server: 10.0.0.1
