@@ -8,7 +8,7 @@ Features in currently in development for the upcoming release:
 ## Build container
 ```bash
 source ../00-ENV/env.sh
-CVERSION="v0.3.2"
+CVERSION="v0.5.1"
 
 docker login ghcr.io -u bartvanbenthem -p $CR_PAT
 
@@ -30,17 +30,23 @@ kubectl apply -f ./config/crd/tracker.cndev.nl.yaml
 # kubectl delete -f ./config/crd/tracker.cndev.nl.yaml
 ```
 
+## Create namespace
+```bash
+kubectl create ns test-operator
+# kubectl delete ns test-operator
+```
+
 ## Deploy Operator
 ```bash
-kubectl apply -f ./config/manager/operator.yaml
-# kubectl delete -f ./config/manager/operator.yaml
+kubectl -n test-operator apply -f ./config/manager/operator.yaml
+# kubectl -n test-operator delete -f ./config/manager/operator.yaml
 ```
 
 ## Sample tracker
 ```bash
-kubectl apply -f ./config/samples/tracker-example.yaml
-kubectl describe volumetrackers.cndev.nl example-tracker
-# kubectl delete -f ./config/samples/tracker-example.yaml
+kubectl -n test-operator apply -f ./config/samples/tracker-example.yaml
+kubectl -n test-operator describe volumetrackers.cndev.nl example-tracker
+# kubectl -n test-operator delete -f ./config/samples/tracker-example.yaml
 ```
 
 ## Test Watchers & Reconciler on Create Persistant Volumes

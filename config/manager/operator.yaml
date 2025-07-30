@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: pvtracker-sa
-  namespace: default
+  namespace: test-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -35,7 +35,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: pvtracker-sa
-  namespace: default
+  namespace: test-operator
 roleRef:
   kind: ClusterRole
   name: pvtracker-role
@@ -45,7 +45,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pvtracker
-  namespace: default
+  namespace: test-operator
   labels:
     app: pvtracker
 spec:
@@ -61,7 +61,7 @@ spec:
       serviceAccountName: pvtracker-sa
       containers:
       - name: pvtracker
-        image: ghcr.io/bartvanbenthem/pvtracker:v0.3.2
+        image: ghcr.io/bartvanbenthem/pvtracker:v0.5.1
         imagePullPolicy: IfNotPresent
         volumeMounts:
           - name: nfs-volume
@@ -69,5 +69,5 @@ spec:
       volumes:
         - name: nfs-volume
           nfs:
-            server: 10.205.143.135
+            server: 10.205.159.135
             path: /shares/fsc-pvtracker-log

@@ -2,7 +2,6 @@ apiVersion: cndev.nl/v1beta1
 kind: VolumeTracker
 metadata:
   name: example-tracker
-  namespace: default
   labels:
     app.kubernetes.io/name: volumetracker
     app.kubernetes.io/part-of: disaster-recovery-operator
