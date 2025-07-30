@@ -16,6 +16,7 @@ use kube::{Api, client::Client, runtime::Controller, runtime::controller::Action
 use pvtracker::utils;
 use std::sync::Arc;
 use tokio::time::Duration;
+use tokio::time::sleep;
 use tracing::*;
 
 /// Context injected with each `reconcile` and `on_error` method invocation.
@@ -59,6 +60,20 @@ async fn main() -> Result<(), Error> {
         timeout: Some(200),
         ..Default::default()
     };
+
+    // Wait until there is at least one `VolumeTracker` on the cluster before continuing
+    loop {
+        let volume_trackers = crd_api.list(&Default::default()).await?;
+
+        // If there is at least one VolumeTracker, proceed
+        if !volume_trackers.items.is_empty() {
+            break;
+        }
+
+        // Otherwise, log and wait for a bit before checking again
+        info!("No VolumeTracker found, waiting to start controller...");
+        sleep(Duration::from_secs(10)).await;
+    }
 
     // Getting all the specified storage resources on a cluster level
     let pvc_api = Api::<PersistentVolumeClaim>::all(kubeconfig.clone());
