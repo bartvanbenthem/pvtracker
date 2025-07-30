@@ -26,3 +26,4 @@ thiserror = "1"    # Custom Error definitions and convenient error mappings
 chrono = "0.4"
 kube-runtime = "1.1.0"
 async-trait = "0.1.88"
+tokio-stream = "0.1.17"
