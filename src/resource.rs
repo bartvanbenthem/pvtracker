@@ -32,7 +32,7 @@ where
     Ok(r_list)
 }
 
-// Generic function to fetch and write a resource to disk
+// Generic function to fetch and write a resource in json format to disk
 pub async fn fetch_and_write_resource<T>(
     client: Client,
     mount_path: &str,
