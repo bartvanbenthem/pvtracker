@@ -1,0 +1,13 @@
+namespace: test-operator
+
+serviceAccount:
+  name: pvtracker-sa
+
+image:
+  repository: ghcr.io/bartvanbenthem/pvtracker
+  tag: v0.5.1
+  pullPolicy: IfNotPresent
+
+nfs:
+  server: 10.205.159.135
+  path: /shares/fsc-pvtracker-log

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: pvtracker-sa
-  namespace: test-operator
+  namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -35,7 +35,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: pvtracker-sa
-  namespace: test-operator
+  namespace: default
 roleRef:
   kind: ClusterRole
   name: pvtracker-role
@@ -45,7 +45,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pvtracker
-  namespace: test-operator
+  namespace: default
   labels:
     app: pvtracker
 spec:

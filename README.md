@@ -30,23 +30,22 @@ kubectl apply -f ./config/crd/tracker.cndev.nl.yaml
 # kubectl delete -f ./config/crd/tracker.cndev.nl.yaml
 ```
 
-## Create namespace
-```bash
-kubectl create ns test-operator
-# kubectl delete ns test-operator
-```
-
 ## Deploy Operator
 ```bash
-kubectl -n test-operator apply -f ./config/manager/operator.yaml
-# kubectl -n test-operator delete -f ./config/manager/operator.yaml
+# Helm
+helm install pvtracker ./chart/pvtracker --create-namespace --namespace test-operator
+# helm -n test-operator uninstall pvtracker
+
+# Manifest
+kubectl apply -f ./config/manager/operator.yaml
+# kubectl delete -f ./config/manager/operator.yaml
 ```
 
 ## Sample tracker
 ```bash
-kubectl -n test-operator apply -f ./config/samples/tracker-example.yaml
-kubectl -n test-operator describe volumetrackers.cndev.nl example-tracker
-# kubectl -n test-operator delete -f ./config/samples/tracker-example.yaml
+kubectl apply -f ./config/samples/tracker-example.yaml
+kubectl describe volumetrackers.cndev.nl example-tracker
+# kubectl delete -f ./config/samples/tracker-example.yaml
 ```
 
 ## Test Watchers & Reconciler on Create Persistant Volumes

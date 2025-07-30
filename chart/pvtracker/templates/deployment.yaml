@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pvtracker
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: pvtracker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pvtracker
+  template:
+    metadata:
+      labels:
+        app: pvtracker
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+        - name: pvtracker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: nfs-volume
+              mountPath: /pvtrackerlog
+      volumes:
+        - name: nfs-volume
+          nfs:
+            server: {{ .Values.nfs.server }}
+            path: {{ .Values.nfs.path }}
