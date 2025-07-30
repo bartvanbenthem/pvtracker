@@ -39,10 +39,8 @@ kubectl apply -f ./config/manager/operator.yaml
 ## Sample tracker
 ```bash
 kubectl apply -f ./config/samples/tracker-example.yaml
-kubectl apply -f ./config/samples/tracker2-example.yaml
 kubectl describe volumetrackers.cndev.nl example-tracker
 # kubectl delete -f ./config/samples/tracker-example.yaml
-# kubectl delete -f ./config/samples/tracker2-example.yaml
 ```
 
 ## Test Watchers & Reconciler on Create Persistant Volumes

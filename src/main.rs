@@ -15,15 +15,13 @@ use kube::{Api, client::Client, runtime::Controller, runtime::controller::Action
 use pvtracker::utils;
 use std::sync::Arc;
 use tokio::time::Duration;
-use tokio::time::sleep;
 use tracing::*;
 
-
+use futures::TryStreamExt;
 use kube_runtime::WatchStreamExt;
 use kube_runtime::watcher;
-use futures::TryStreamExt;
-use tokio::task;
 use tokio::sync::mpsc;
+use tokio::task;
 use tokio_stream::wrappers::ReceiverStream;
 
 /// Context injected with each `reconcile` and `on_error` method invocation.
@@ -57,24 +55,10 @@ async fn main() -> Result<(), Error> {
     let crd_api: Api<VolumeTracker> = Api::all(kubeconfig.clone());
     let context: Arc<ContextData> = Arc::new(ContextData::new(kubeconfig.clone()));
 
-    // Wait until there is at least one `VolumeTracker` on the cluster before continuing
-    loop {
-        let volume_trackers = crd_api.list(&Default::default()).await?;
-
-        // If there is at least one VolumeTracker, proceed
-        if !volume_trackers.items.is_empty() {
-            break;
-        }
-
-        // Otherwise, log and wait for a bit before checking again
-        info!("No VolumeTracker found, waiting to start controller...");
-        sleep(Duration::from_secs(10)).await;
-    }
 
     let (tx, rx) = mpsc::channel::<()>(16); // channel to trigger global reconciles
     let signal_stream = ReceiverStream::new(rx); // converts mpsc into a stream
-
-    // Start the PV watcher in background
+    // Start the Persistant Volume watcher in background
     start_pv_watcher(kubeconfig.clone(), tx).await?;
 
     // The controller comes from the `kube_runtime` crate and manages the reconciliation process.
@@ -85,7 +69,7 @@ async fn main() -> Result<(), Error> {
     // - `on_error` function to call whenever reconciliation fails.
     Controller::new(crd_api.clone(), Config::default())
         .shutdown_on_signal()
-        .reconcile_all_on(signal_stream) 
+        .reconcile_all_on(signal_stream)
         .run(reconcile, on_error, context)
         .for_each(|reconciliation_result| async move {
             match reconciliation_result {
@@ -245,31 +229,6 @@ pub enum Error {
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
-/*
-async fn start_pv_watcher(kube_client: Client) -> Result<(), Error> {
-    let api = Api::<PersistentVolume>::all(kube_client);
-
-    // Spawn the watcher in a new Tokio task
-    task::spawn(async move {
-        let result = watcher(api, Config::default())
-            .applied_objects()
-            .default_backoff()
-            .try_for_each(|p| async move {
-                info!("saw {}", p.name_any());
-                Ok::<_, kube_runtime::watcher::Error>(())
-            })
-            .await;
-
-        if let Err(e) = result {
-            // Handle watcher error (or return it somewhere)
-            error!("Watcher failed: {:?}", e);
-        }
-    });
-
-    Ok(())
-}
-    */
-
 async fn start_pv_watcher(kube_client: Client, tx: mpsc::Sender<()>) -> Result<(), anyhow::Error> {
     let pv_api = Api::<PersistentVolume>::all(kube_client.clone());
 
@@ -280,7 +239,7 @@ async fn start_pv_watcher(kube_client: Client, tx: mpsc::Sender<()>) -> Result<(
             .try_for_each(|pv| {
                 let tx = tx.clone();
                 async move {
-                    info!("PV changed: {}", pv.name_any());
+                    info!("Watched Resource: {}", pv.name_any());
                     tx.send(()).await.ok();
                     Ok(())
                 }
@@ -288,43 +247,9 @@ async fn start_pv_watcher(kube_client: Client, tx: mpsc::Sender<()>) -> Result<(
             .await;
 
         if let Err(err) = result {
-            error!("PV watcher failed: {:?}", err);
+            error!("Resource Watcher Failed: {:?}", err);
         }
     });
 
     Ok(())
 }
-
-/*
-/// Watch PersistentVolumes and trigger all reconciles
-async fn start_pv_watcher(client: Client, tx: mpsc::Sender<()>) -> anyhow::Result<()> {
-    let pv_api = Api::<kube::api::Resource>::all(client);
-
-    task::spawn(async move {
-        let result = watcher(pv_api, Config::default())
-            .applied_objects()
-            .default_backoff()
-            .try_for_each(|pv| {
-                let tx = tx.clone();
-                async move {
-                    info!("PV changed: {}", pv.name_any());
-
-                    // Send signal to trigger all reconciliations
-                    if tx.send(()).await.is_err() {
-                        error!("Failed to send reconcile trigger");
-                    }
-
-                    Ok(())
-                }
-            })
-            .await;
-
-        if let Err(err) = result {
-            error!("PV watcher failed: {:?}", err);
-        }
-    });
-
-    Ok(())
-}
-
-*/
