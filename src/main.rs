@@ -46,17 +46,17 @@ async fn main() -> Result<(), Error> {
     let config = KubeConfig::infer()
         .await
         .map_err(|e| kube::Error::InferConfig(e))?;
-    let kubeconfig: Client = Client::try_from(config)?;
+    let client: Client = Client::try_from(config)?;
 
     // Preparation of resources used by the `kube_runtime::Controller`
-    let crd_api: Api<VolumeTracker> = Api::all(kubeconfig.clone());
-    let context: Arc<ContextData> = Arc::new(ContextData::new(kubeconfig.clone()));
+    let crd_api: Api<VolumeTracker> = Api::all(client.clone());
+    let context: Arc<ContextData> = Arc::new(ContextData::new(client.clone()));
 
 
     let (tx, rx) = mpsc::channel::<()>(16); // channel to trigger global reconciles
     let signal_stream = ReceiverStream::new(rx); // converts mpsc into a stream
     // Start the Persistant Volume watcher in background
-    start_resource_watcher::<PersistentVolume>(kubeconfig.clone(), tx).await?;
+    start_resource_watcher::<PersistentVolume>(client.clone(), tx).await?;
 
     // The controller comes from the `kube_runtime` crate and manages the reconciliation process.
     // It requires the following information:

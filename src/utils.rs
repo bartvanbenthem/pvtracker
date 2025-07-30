@@ -62,6 +62,7 @@ where
 }
 
 /// Generate `ObjectRef`s for all instances of a given Kubernetes resource type.
+/// https://kube.rs/controllers/relations/#watched-relations
 pub async fn make_object_refs<T>(
     client: Client,
     namespace: Option<&str>,
