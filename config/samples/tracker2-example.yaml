@@ -1,0 +1,14 @@
+apiVersion: cndev.nl/v1beta1
+kind: VolumeTracker
+metadata:
+  name: example-tracker2
+  namespace: default
+  labels:
+    app.kubernetes.io/name: volumetracker
+    app.kubernetes.io/part-of: disaster-recovery-operator
+  annotations:
+    description: "Tracks persistent volume usage and logs it"
+spec:
+  clusterNameKey: cluster.x-k8s.io/cluster-name
+  mountPath: pvtrackerlog
+  retention: 14
