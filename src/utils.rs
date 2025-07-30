@@ -17,6 +17,50 @@ use tracing::*;
 
 use std::fmt::Debug;
 
+use futures::TryStreamExt;
+use kube_runtime::WatchStreamExt;
+use kube_runtime::watcher;
+use tokio::task;
+use kube::api::ObjectMeta;
+use tokio::sync::mpsc;
+use kube_runtime::watcher::Config;
+use kube::ResourceExt;
+
+pub async fn start_resource_watcher<T>(client: Client, tx: mpsc::Sender<()>) -> Result<(), anyhow::Error> 
+where
+    T: Clone
+        + Debug
+        + Resource<DynamicType = ()>
+        + Metadata<Ty = ObjectMeta>
+        + DeserializeOwned
+        + Send
+        + Sync
+        + 'static,
+{
+    let resource_api = Api::<T>::all(client.clone());
+
+    task::spawn(async move {
+        let result = watcher(resource_api, Config::default())
+            .applied_objects()
+            .default_backoff()
+            .try_for_each(|pv| {
+                let tx = tx.clone();
+                async move {
+                    info!("Watched Resource: {}", pv.name_any());
+                    tx.send(()).await.ok();
+                    Ok(())
+                }
+            })
+            .await;
+
+        if let Err(err) = result {
+            error!("Resource Watcher Failed: {:?}", err);
+        }
+    });
+
+    Ok(())
+}
+
 /// Generate `ObjectRef`s for all instances of a given Kubernetes resource type.
 pub async fn make_object_refs<T>(
     client: Client,

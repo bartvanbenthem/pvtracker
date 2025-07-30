@@ -4,6 +4,7 @@ use k8s_openapi::api::storage::v1::StorageClass;
 use pvtracker::crd::VolumeTracker;
 use pvtracker::resource::*;
 use pvtracker::status;
+use pvtracker::utils::*;
 
 use chrono::Utc;
 use futures::stream::StreamExt;
@@ -17,11 +18,7 @@ use std::sync::Arc;
 use tokio::time::Duration;
 use tracing::*;
 
-use futures::TryStreamExt;
-use kube_runtime::WatchStreamExt;
-use kube_runtime::watcher;
 use tokio::sync::mpsc;
-use tokio::task;
 use tokio_stream::wrappers::ReceiverStream;
 
 /// Context injected with each `reconcile` and `on_error` method invocation.
@@ -59,7 +56,7 @@ async fn main() -> Result<(), Error> {
     let (tx, rx) = mpsc::channel::<()>(16); // channel to trigger global reconciles
     let signal_stream = ReceiverStream::new(rx); // converts mpsc into a stream
     // Start the Persistant Volume watcher in background
-    start_pv_watcher(kubeconfig.clone(), tx).await?;
+    start_resource_watcher::<PersistentVolume>(kubeconfig.clone(), tx).await?;
 
     // The controller comes from the `kube_runtime` crate and manages the reconciliation process.
     // It requires the following information:
@@ -228,28 +225,3 @@ pub enum Error {
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
-
-async fn start_pv_watcher(kube_client: Client, tx: mpsc::Sender<()>) -> Result<(), anyhow::Error> {
-    let pv_api = Api::<PersistentVolume>::all(kube_client.clone());
-
-    task::spawn(async move {
-        let result = watcher(pv_api, Config::default())
-            .applied_objects()
-            .default_backoff()
-            .try_for_each(|pv| {
-                let tx = tx.clone();
-                async move {
-                    info!("Watched Resource: {}", pv.name_any());
-                    tx.send(()).await.ok();
-                    Ok(())
-                }
-            })
-            .await;
-
-        if let Err(err) = result {
-            error!("Resource Watcher Failed: {:?}", err);
-        }
-    });
-
-    Ok(())
-}
