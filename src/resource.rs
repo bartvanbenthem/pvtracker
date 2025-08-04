@@ -1,5 +1,5 @@
 use crate::utils;
-use anyhow::Result;
+use anyhow::{Result, Context};
 use k8s_openapi::Metadata;
 use kube::Resource;
 use kube::api::ObjectList;
@@ -9,6 +9,11 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use std::fmt::Debug;
 use std::path::Path;
+use tokio::fs;
+use tokio_stream::wrappers::ReadDirStream;
+use tokio_stream::StreamExt;
+use tracing::*;
+
 
 // Generic function to read a specific resource type and return a list
 async fn get_resource_list<T>(client: Client) -> Result<ObjectList<T>, anyhow::Error>
@@ -62,4 +67,45 @@ where
 
     let resource_list: ObjectList<T> = get_resource_list(client).await?;
     utils::write_json_to_file(&resource_list.items, file_str).await
+}
+
+// Generic function to fetch and write a resource in json format to disk
+pub async fn cleanup_resource_logs(
+    mount_path: &str,
+    cluster_name: &str,
+    retention: &u16,
+    tf: &i64,
+) -> Result<(), anyhow::Error>
+{
+    let file_path = Path::new(mount_path).join(cluster_name);
+    let retention_secs = (*retention as i64) * 24 * 60 * 60;
+
+    let read_dir = fs::read_dir(&file_path)
+        .await
+        .context(format!("Failed to read directory {:?}", file_path))?;
+
+    let mut entries = ReadDirStream::new(read_dir);
+
+    while let Some(entry_result) = entries.next().await {
+        let entry = entry_result?;
+        let path = entry.path();
+
+        if let Some(folder_name) = path.file_name().and_then(|s| s.to_str()) {
+            match folder_name.parse::<i64>() {
+                Ok(folder_timestamp) => {
+                    let age = tf - folder_timestamp;
+                    if age > retention_secs {
+                        info!("Removing old folder: {:?}", path);
+                        fs::remove_dir_all(&path).await
+                            .context(format!("Failed to delete folder {:?}", path))?;
+                    }
+                }
+                Err(_) => {
+                    error!("Skipping non-numeric folder: {:?}", folder_name);
+                }
+            }
+        }
+    }
+
+    Ok(())
 }

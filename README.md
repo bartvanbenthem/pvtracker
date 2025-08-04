@@ -32,8 +32,8 @@ kubectl apply -f ./config/crd/tracker.cndev.nl.yaml
 
 ## Deploy Operator
 ```bash
-helm install pvtracker ./chart/pvtracker --create-namespace --namespace test-operator
-# helm -n test-operator uninstall pvtracker
+helm install pvtracker ./chart/pvtracker --create-namespace --namespace default
+# helm -n default uninstall pvtracker
 ```
 
 ## Sample tracker

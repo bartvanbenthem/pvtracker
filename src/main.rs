@@ -170,6 +170,9 @@ async fn reconcile(cr: Arc<VolumeTracker>, context: Arc<ContextData>) -> Result<
         }
     }
 
+    // cleanup old log folders based on the given retention in days in the CR spec.
+    cleanup_resource_logs(&cr.spec.mount_path, &cluster_name,&cr.spec.retention, &tf).await?;
+
     status::print(client.clone(), &name, &namespace).await?;
 
     Ok(Action::requeue(Duration::from_secs(32000)))

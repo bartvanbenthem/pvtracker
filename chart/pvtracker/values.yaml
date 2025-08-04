@@ -1,4 +1,4 @@
-namespace: test-operator
+namespace: default
 
 serviceAccount:
   name: pvtracker-sa
