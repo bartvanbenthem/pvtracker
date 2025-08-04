@@ -32,11 +32,11 @@ kubectl apply -f ./config/crd/tracker.cndev.nl.yaml
 
 ## Deploy Operator
 ```bash
-helm install pvtracker ./chart/pvtracker --create-namespace --namespace default
+helm install pvtracker ./config/operator/chart --create-namespace --namespace default
 # helm -n default uninstall pvtracker
 ```
 
-## Sample tracker
+## Sample tracker resource
 ```bash
 kubectl apply -f ./config/samples/tracker-example.yaml
 kubectl describe volumetrackers.cndev.nl example-tracker
@@ -62,7 +62,7 @@ metadata:
   annotations:
     description: "Tracks persistent volume usage and logs it"
 spec:
-  clusterNameKey: cluster.x-k8s.io/cluster-name
-  mountPath: pvtrackerlog
-  retention: 14
+  clusterNameKey: cluster.x-k8s.io/cluster-name # retreiving the cluster name by annotation key is required
+  mountPath: pvtrackerlog # needs to corresponed with the mountPath given in the opertor spec/chart
+  retention: 14 # retention in days
 ```

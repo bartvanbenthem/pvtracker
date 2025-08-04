@@ -11,3 +11,4 @@ image:
 nfs:
   server: 10.205.159.135
   path: /shares/fsc-pvtracker-log
+  mountPath: /pvtrackerlog # needs to corresponed with the mountPath given in the volumeTracker spec

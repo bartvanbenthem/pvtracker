@@ -22,7 +22,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
             - name: nfs-volume
-              mountPath: /pvtrackerlog
+              mountPath: {{ .Values.nfs.mountPath }}
       volumes:
         - name: nfs-volume
           nfs:
