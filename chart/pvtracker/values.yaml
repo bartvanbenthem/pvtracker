@@ -5,7 +5,7 @@ serviceAccount:
 
 image:
   repository: ghcr.io/bartvanbenthem/pvtracker
-  tag: v0.5.1
+  tag: v0.6.1
   pullPolicy: IfNotPresent
 
 nfs:

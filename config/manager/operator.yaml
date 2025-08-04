@@ -61,7 +61,7 @@ spec:
       serviceAccountName: pvtracker-sa
       containers:
       - name: pvtracker
-        image: ghcr.io/bartvanbenthem/pvtracker:v0.5.1
+        image: ghcr.io/bartvanbenthem/pvtracker:v0.6.1
         imagePullPolicy: IfNotPresent
         volumeMounts:
           - name: nfs-volume

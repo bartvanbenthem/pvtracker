@@ -8,7 +8,7 @@ Features in currently in development for the upcoming release:
 ## Build container
 ```bash
 source ../00-ENV/env.sh
-CVERSION="v0.5.1"
+CVERSION="v0.6.1"
 
 docker login ghcr.io -u bartvanbenthem -p $CR_PAT
 
