@@ -1,10 +1,6 @@
 # PVTracker
 Kubernetes controller that logs the state of storage resources on a Kubernetes cluster. 
 
-### upcoming release
-Features in currently in development for the upcoming release:
-* remove old logs based on a given retention time in days in the cr spec
-
 ## Build container
 ```bash
 source ../00-ENV/env.sh
