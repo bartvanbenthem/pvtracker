@@ -1,5 +1,5 @@
 # PVTracker
-Kubernetes controller that logs the state of storage resources on a Kubernetes cluster. 
+A test project to evaluate the effectiveness of watchers and streams in Rust and the kube-rs framework.
 
 ## Build container
 ```bash
